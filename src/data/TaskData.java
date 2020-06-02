@@ -55,10 +55,10 @@ public class TaskData {
     try{
       tmp.setName(num);
     for (File file : files) {
-      if (file.getName().equals("in_"+num+".txt")){//get input @todo 完成数据读入
+      if (file.getName().equals("in_"+num+".txt")){//get input
           tmp.setInput(file);
       }
-      if (file.getName().equals("out_"+num+".txt")){//get output@todo 完成数据读入
+      if (file.getName().equals("out_"+num+".txt")){//get output
         tmp.setOutput(file);
       }
     }
@@ -68,6 +68,9 @@ public class TaskData {
     }
   }
 
+  /**
+   *user to test if this part work
+   * **/
   public static void main(String[] args)  {
     try {
       TestPoint[]testPoints= getTestPoint("/home/ai/IdeaProjects/Tester/src/toPlaceTest/question_1/data/");
