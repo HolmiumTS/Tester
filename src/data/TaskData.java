@@ -3,6 +3,7 @@ package data;
 import test.Test;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 public class TaskData {
@@ -30,7 +31,7 @@ public class TaskData {
     File dir = new File(path);
     File[] list;
     ArrayList<TestPoint> testPoints = new ArrayList<TestPoint>();
-
+    TestPoint[] testPoints1;
     if (dir.isFile()) {
       throw new DataException("path point to a file");
     } else {
@@ -43,24 +44,44 @@ public class TaskData {
         testPoints.add(getOnePoint(i+1,list));
       }
     }
-    return null;
+    testPoints1=new TestPoint[testPoints.size()];
+    testPoints1=testPoints.toArray(testPoints1);
+    return testPoints1;
   }
 
-  private static TestPoint getOnePoint(int num,File[]files) throws DataException{
+  private static TestPoint getOnePoint(int num,File[]files) throws DataException {
     int flag=0;
     TestPoint tmp=new TestPoint();
+    try{
+      tmp.setName(num);
     for (File file : files) {
-      if (file.getName().equals("in_"+num+".txt")){//get input
-
+      if (file.getName().equals("in_"+num+".txt")){//get input @todo 完成数据读入
+          tmp.setInput(file);
       }
-      if (file.getName().equals("out_"+num+".txt")){//get output
-
+      if (file.getName().equals("out_"+num+".txt")){//get output@todo 完成数据读入
+        tmp.setOutput(file);
       }
     }
     return tmp;
+  }catch (FileNotFoundException e){
+      throw new DataException("File not found.");
+    }
   }
 
-  public static void main(String[] args) {
-    System.out.println("in_"+1);
-  } /**/
+  public static void main(String[] args)  {
+    try {
+      TestPoint[]testPoints= getTestPoint("/home/ai/IdeaProjects/Tester/src/toPlaceTest/question_1/data/");
+      for (TestPoint testPoint : testPoints) {
+        System.out.println(testPoint.getName());
+        for (String input :testPoint.getInput()) {
+          System.out.println(input);
+        }
+        for (String output :testPoint.getOutput()) {
+          System.out.println(output);
+        }
+      }
+    }catch (DataException e){
+      System.out.println(e.error);
+    }
+    } /**/
 }
