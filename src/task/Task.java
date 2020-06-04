@@ -4,6 +4,7 @@ import data.DataException;
 import data.TaskData;
 import data.TestPoint;
 import test.Test;
+import test.TestResult;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -11,6 +12,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class Task {
@@ -67,6 +71,26 @@ public class Task {
         return true;
     }
 
+    private List<? extends Callable<?>> packTest(String[] papers, TestPoint[] points) {
+        List<PackTest> tests = new ArrayList<>();
+        for (final String paper : papers) {
+            for (final TestPoint point : points) {
+                tests.add(new PackTest(
+                        paper,
+                        point.getName(),
+                        new Test(
+                                point.getInput(),
+                                point.getOutput(),
+                                compileCommand.replaceAll("%s", paper),
+                                runCommand.replaceAll("%s", paper),
+                                timeLimitMs
+                        )
+                ));
+            }
+        }
+        return tests;
+    }
+
     /**
      * run a task
      *
@@ -90,24 +114,19 @@ public class Task {
         if (papers == null) {
             throw new TaskException("Error in test papers loading.");
         }
-        List<PackTest> tests = new ArrayList<>();
-        for (final String paper : papers) {
-            tests.addAll(
-                    Arrays.stream(points)
-                            .map(testPoint ->
-                                    new PackTest(
-                                            paper,
-                                            testPoint.getName(),
-                                            new Test(
-                                                    testPoint.getInput(),
-                                                    testPoint.getOutput(),
-                                                    compileCommand.replaceAll("%s", paper),
-                                                    runCommand.replaceAll("%s", paper),
-                                                    timeLimitMs))
-                            )
-                            .collect(Collectors.toList())
-            );
+        List<? extends Callable<?>> list;
+        if (type == TaskType.FULL_COMPARE) {
+            list = packTest(papers, points);
         }
+    }
+
+    TaskResult execute(List<? extends Callable<?>> list) {
+        ExecutorCompletionService service = new ExecutorCompletionService<>(Executors.newCachedThreadPool());
+        for (Callable callable : list) {
+            service.submit(callable);
+        }
+        TaskResult result = new TaskResult();
+        return result;
     }
 
     String[] getAllPapers(File code) {
