@@ -7,10 +7,13 @@ import test.Test;
 import test.TestResult;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class Task {
     String root;
@@ -30,7 +33,7 @@ public class Task {
     }
 
     private boolean init() {
-        try (Scanner scanner = new Scanner(new File("." + File.pathSeparator + "config.txt"))) {
+        try (Scanner scanner = new Scanner(new File(root + File.separator + "config.txt"))) {
             String s = scanner.nextLine();
             switch (s.trim()) {
                 case "FULL_COMPARE":
@@ -61,6 +64,7 @@ public class Task {
                 runCheckerCommand = scanner.nextLine().trim();
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
         return true;
@@ -95,13 +99,13 @@ public class Task {
         if (!init()) {
             throw new TaskException("Error in config file.");
         }
-        File code = new File(root + File.pathSeparator + "code");
+        File code = new File(root + File.separator + "code");
         if (!code.exists() || !code.isDirectory()) {
             throw new TaskException("Cannot find code.");
         }
         TestPoint[] points;
         try {
-            points = TaskData.getTestPoint(root + File.pathSeparator + "data");
+            points = TaskData.getTestPoint(root + File.separator + "data");
         } catch (DataException e) {
             throw new TaskException("Error in test data loading.", e);
         }
@@ -109,18 +113,36 @@ public class Task {
         if (papers == null) {
             throw new TaskException("Error in test papers loading.");
         }
-        List<? extends Callable<?>> list;
+        List<? extends Callable<?>> list = null;
         if (type == TaskType.FULL_COMPARE) {
             list = packTest(papers, points);
+        }
+        TaskResult res = execute(list);
+        try {
+            res.writeResult();
+        } catch (IOException e) {
+            throw new TaskException("Failed to write task result.", e);
         }
     }
 
     TaskResult execute(List<? extends Callable<?>> list) {
-        ExecutorCompletionService service = new ExecutorCompletionService<>(Executors.newCachedThreadPool());
+        ExecutorService s = Executors.newCachedThreadPool();
+        ExecutorCompletionService service = new ExecutorCompletionService<>(s);
         for (Callable callable : list) {
             service.submit(callable);
         }
         TaskResult result = new TaskResult();
+        int n = list.size();
+        for (int i = 0; i < n; i++) {
+            try {
+                result.collect((TestUnit) service.take().get());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        s.shutdown();
         return result;
     }
 
@@ -134,7 +156,7 @@ public class Task {
             }
             list.add(f.getName());
         }
-        return (String[]) list.toArray();
+        return list.toArray(new String[0]);
     }
 
     private class TaskResult {
@@ -145,6 +167,37 @@ public class Task {
                 res.put(unit.getPaper(), new HashMap<>());
             }
             res.get(unit.getPaper()).put(unit.getTestPoint(), unit.getResult());
+        }
+
+        public void writeResult() throws IOException {
+            Path resPath = new File(root + File.separator + "result.csv").toPath();
+            if (Files.notExists(resPath)) {
+                Files.createFile(resPath);
+            }
+            Writer out = Files.newBufferedWriter(resPath);
+            if (res.size() == 0) {
+                return;
+            }
+            String[] rows = res.keySet().toArray(new String[0]);
+            String[] cols = res.get(rows[0]).keySet().toArray(new String[0]);
+            if (cols.length == 0) return;
+            StringBuilder builder = new StringBuilder();
+            builder.append("\"name\",");
+            for (String s : cols) {
+                builder.append("\"").append(s).append("\",");
+            }
+            builder.append(System.lineSeparator());
+            out.write(builder.toString());
+            for (String row : rows) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("\"").append(row).append("\",");
+                for (String col : cols) {
+                    sb.append("\"").append(((TestResult) res.get(row).get(col)).toString()).append("\",");
+                }
+                sb.append(System.lineSeparator());
+                out.write(sb.toString());
+            }
+            out.close();
         }
     }
 }
