@@ -7,15 +7,10 @@ import test.Test;
 import test.TestResult;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 public class Task {
     String root;
@@ -140,5 +135,16 @@ public class Task {
             list.add(f.getName());
         }
         return (String[]) list.toArray();
+    }
+
+    private class TaskResult {
+        private final Map<String, Map<String, TestResult>> res = new HashMap<>();
+
+        public void collect(TestUnit unit) {
+            if (res.get(unit.getPaper()) == null) {
+                res.put(unit.getPaper(), new HashMap<>());
+            }
+            res.get(unit.getPaper()).put(unit.getTestPoint(), unit.getResult());
+        }
     }
 }
