@@ -4,88 +4,89 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class Test {
-  /**
-   * init a test
-   *
-   * @param stdInput       data of the std input
-   * @param stdOutput      data of the std output
-   * @param compileCommand exactly compile command
-   * @param runCommand     exactly run command
-   * @param timeLimitMs    max running time in ms
-   */
-  /**
-   * @// TODO: 2020/6/5 1.执行编译指令 compileCommand 生成对应的文件 {done}
-   * 2.执行 runCommand 将输出结果与 stdOutput比对
-   * 3.返回相应的结果
-   */
-  String[] input;
-  String[] stdOutput;
-  String compileCMD;
-  String runCMD;
-  long timeLimit;
-  String defaultPath = ".";
-  Result result;
-  static ArrayList<String> Poutput;
-  String[] ProOutput;
-  static boolean programEndedNormally = false;
-
-  public static void callback(ArrayList<String> output) {
-    Poutput = output;
-    programEndedNormally = true;
-  }
-
-  public Test(String[] stdInput, String[] stdOutput, String compileCommand, String runCommand, long timeLimitMs) {
-    this.input = stdInput;
-    this.stdOutput = stdOutput;
-    this.compileCMD = compileCommand;
-    this.runCMD = runCommand;
-    this.timeLimit = timeLimitMs;
-    this.result = new Result();
-  }
-
-  /**
-   * 守护线程，用来实现超时退出功能
-   */
-  static class Daemon implements Runnable {
-    private Thread thread;
-    private long time;
-
-    Daemon(Thread th, long t) {
-      thread = th;
-      time = t;
-    }
-
-    @Override
-    public void run() {
-      while (true) {
-        try {
-          Thread.sleep(time);
-        } catch (InterruptedException e) {
-          //do nothing
-        }
-        thread.interrupt();
-      }
-    }
-  }
-
-  /**
-   * 任务线程
-   */
-  class Task extends Thread {
+    /**
+     * @// TODO: 2020/6/5 1.执行编译指令 compileCommand 生成对应的文件 {done}
+     * 2.执行 runCommand 将输出结果与 stdOutput比对
+     * 3.返回相应的结果
+     */
     String[] input;
     String[] stdOutput;
+    String compileCMD;
     String runCMD;
-    String path;
+    long timeLimit;
+    String defaultPath = ".";
+    Result result;
+    static ArrayList<String> Poutput;
+    String[] ProOutput;
+    static boolean programEndedNormally = false;
+
+    public static void callback(ArrayList<String> output) {
+        Poutput = output;
+        programEndedNormally = true;
+    }
 
     /**
-     * @// TODO: 2020/6/6 1.处理读入输出的问题 2.进行文本匹配
+     * init a test
+     *
+     * @param stdInput       data of the std input
+     * @param stdOutput      data of the std output
+     * @param compileCommand exactly compile command
+     * @param runCommand     exactly run command
+     * @param workingPath    path where test running
+     * @param timeLimitMs    max running time in ms
      */
-    Task(String[] input, String[] stdOutput, String runCMD, String path) {
-      this.input = input;
-      this.stdOutput = stdOutput;
-      this.runCMD = runCMD;
-      this.path = path;
+    public Test(String[] stdInput, String[] stdOutput, String compileCommand, String runCommand, String workingPath, long timeLimitMs) {
+        this.input = stdInput;
+        this.stdOutput = stdOutput;
+        this.compileCMD = compileCommand;
+        this.runCMD = runCommand;
+        this.timeLimit = timeLimitMs;
+        this.result = new Result();
     }
+
+    /**
+     * 守护线程，用来实现超时退出功能
+     */
+    static class Daemon implements Runnable {
+        private Thread thread;
+        private long time;
+
+        Daemon(Thread th, long t) {
+            thread = th;
+            time = t;
+        }
+
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Thread.sleep(time);
+                } catch (InterruptedException e) {
+                    //do nothing
+                }
+                thread.interrupt();
+            }
+        }
+    }
+
+    /**
+     * 任务线程
+     */
+    class Task extends Thread {
+        String[] input;
+        String[] stdOutput;
+        String runCMD;
+        String path;
+
+        /**
+         * @// TODO: 2020/6/6 1.处理读入输出的问题 2.进行文本匹配
+         */
+        Task(String[] input, String[] stdOutput, String runCMD, String path) {
+            this.input = input;
+            this.stdOutput = stdOutput;
+            this.runCMD = runCMD;
+            this.path = path;
+        }
 
     @Override
     public void run() {
@@ -108,7 +109,7 @@ public class Test {
         }
         callback(output);
         buffIn.close();
-        buffOut.close();
+//        buffOut.close();
       } catch (IOException e) {
         result.setResult(TestResult.RE);
       } catch (InterruptedException e) {

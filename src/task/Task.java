@@ -12,6 +12,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -82,9 +83,11 @@ public class Task {
                                 point.getOutput(),
                                 compileCommand.replaceAll("%s", paper),
                                 runCommand.replaceAll("%s", paper),
+                                Paths.get(root, "code", paper).toString(),
                                 timeLimitMs
                         )
                 ));
+                System.out.println(compileCommand.replaceAll("%s", paper));
             }
         }
         return tests;
