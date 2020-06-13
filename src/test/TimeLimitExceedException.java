@@ -1,4 +1,4 @@
 package test;
 
-public class TimeLimitExceedException {
+public class TimeLimitExceedException extends Exception {
 }
