@@ -3,6 +3,8 @@ package task;
 import data.DataException;
 import data.TaskData;
 import data.TestPoint;
+import test.Communicate;
+import test.SpecialJudge;
 import test.Test;
 import test.TestResult;
 
@@ -43,6 +45,9 @@ public class Task {
                 case "SPECIAL_JUDGE":
                     type = TaskType.SPECIAL_JUDGE;
                     break;
+                case "COMMUNICATE":
+                    type = TaskType.COMMUNICATE;
+                    break;
                 default:
                     return false;
             }
@@ -58,7 +63,7 @@ public class Task {
                 return false;
             }
             timeLimitMs = scanner.nextInt();
-            if (type == TaskType.SPECIAL_JUDGE) {
+            if (type != TaskType.FULL_COMPARE) {
                 if (!scanner.hasNext()) {
                     return false;
                 }
@@ -93,6 +98,52 @@ public class Task {
         return tests;
     }
 
+    private List<? extends Callable<?>> packSpj(String[] papers, TestPoint[] points) {
+        List<PackTest> tests = new ArrayList<>();
+        for (final String paper : papers) {
+            for (final TestPoint point : points) {
+                tests.add(new PackTest(
+                        paper,
+                        point.getName(),
+                        new SpecialJudge(
+                                point.getInput(),
+                                point.getOutput(),
+                                compileCommand.replaceAll("%s", paper),
+                                runCommand.replaceAll("%s", paper),
+                                Paths.get(root, "code", paper).toString(),
+                                timeLimitMs,
+                                runCheckerCommand
+                        )
+                ));
+                System.out.println(compileCommand.replaceAll("%s", paper));
+            }
+        }
+        return tests;
+    }
+
+    private List<? extends Callable<?>> packComm(String[] papers, TestPoint[] points) {
+        List<PackTest> tests = new ArrayList<>();
+        for (final String paper : papers) {
+            for (final TestPoint point : points) {
+                tests.add(new PackTest(
+                        paper,
+                        point.getName(),
+                        new Communicate(
+                                point.getInput(),
+                                point.getOutput(),
+                                compileCommand.replaceAll("%s", paper),
+                                runCommand.replaceAll("%s", paper),
+                                Paths.get(root, "code", paper).toString(),
+                                timeLimitMs,
+                                runCheckerCommand
+                        )
+                ));
+                System.out.println(compileCommand.replaceAll("%s", paper));
+            }
+        }
+        return tests;
+    }
+
     /**
      * run a task
      *
@@ -119,6 +170,10 @@ public class Task {
         List<? extends Callable<?>> list = null;
         if (type == TaskType.FULL_COMPARE) {
             list = packTest(papers, points);
+        } else if (type == TaskType.SPECIAL_JUDGE) {
+            list = packSpj(papers, points);
+        } else if (type == TaskType.COMMUNICATE) {
+            list = packComm(papers, points);
         }
         TaskResult res = execute(list);
         try {
