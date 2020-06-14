@@ -6,13 +6,42 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * test in full text compare mode
+ * ignore space at line end
+ *
+ * @author holmium
+ * @see SpecialJudge
+ * @see Communicate
+ */
 public class Test {
+    /**
+     * std input
+     */
     protected String[] input;
+    /**
+     * std output
+     */
     protected String[] output;
+    /**
+     * answer not use
+     */
     protected String[] answer;
+    /**
+     * command to compile the paper
+     */
     protected String compileCmd;
+    /**
+     * command to execute the paper
+     */
     protected String runCmd;
+    /**
+     * paper's root path
+     */
     protected String path;
+    /**
+     * max time in ms that allow paper running, time when compiling excluded
+     */
     protected long timeLimit;
 
     /**
@@ -59,6 +88,13 @@ public class Test {
         }
     }
 
+    /**
+     * execute the paper
+     *
+     * @return answer, spilt in line separator
+     * @throws TimeLimitExceedException if paper run more time than allowed
+     * @throws RuntimeErrorException    if paper cannot finish normally
+     */
     protected String[] execute() throws TimeLimitExceedException, RuntimeErrorException {
         String[] ans = null;
         Process p = null;
@@ -94,6 +130,12 @@ public class Test {
         }
     }
 
+    /**
+     * check the answer
+     *
+     * @param ans answer of paper
+     * @return true if checker is OK, otherwise false
+     */
     protected boolean check(String[] ans) {
         if (ans == null) {
             return false;
@@ -110,6 +152,11 @@ public class Test {
         return true;
     }
 
+    /**
+     * compile the paper
+     *
+     * @return true if compiler finish normally, false otherwise
+     */
     protected boolean compile() {
         try {
             Process p = Runtime.getRuntime().exec(compileCmd, null, new File(path));

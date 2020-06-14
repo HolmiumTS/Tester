@@ -1,5 +1,11 @@
 package test;
 
-public class CompileErrorException extends Exception{
+/**
+ * exception when compile
+ *
+ * @author AI
+ * @see TestResult
+ */
+public class CompileErrorException extends Exception {
 
 }

@@ -18,6 +18,17 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * core of the tester
+ * a task means 'test all paper with all test point'
+ * this class will be create by Cli
+ * types of task is defined in TaskType
+ *
+ * @author holmium
+ * @see Test
+ * @see TaskType
+ * @see cli.Cli
+ */
 public class Task {
     String root;
     String compileCommand;
@@ -27,7 +38,7 @@ public class Task {
     int timeLimitMs;
 
     /**
-     * init a task
+     * init a task with a root path
      *
      * @param root root dir of the Task
      */
@@ -35,6 +46,13 @@ public class Task {
         this.root = root;
     }
 
+    /**
+     * load the config.txt under the root path
+     * init the vars that test need
+     *
+     * @return true if load successfully, otherwise return false
+     * @see TaskType
+     */
     private boolean init() {
         try (Scanner scanner = new Scanner(new File(root + File.separator + "config.txt"))) {
             String s = scanner.nextLine();
@@ -77,6 +95,15 @@ public class Task {
         return true;
     }
 
+    /**
+     * package all papers with all point into PackTest
+     * only used to package for FULL_COMPARE task
+     *
+     * @param papers string array contains all papers' name
+     * @param points string array contains all test points' name
+     * @return a list, contains all packaged test
+     * @see TaskType
+     */
     private List<? extends Callable<?>> packTest(String[] papers, TestPoint[] points) {
         List<PackTest> tests = new ArrayList<>();
         for (final String paper : papers) {
@@ -99,6 +126,15 @@ public class Task {
         return tests;
     }
 
+    /**
+     * package all papers with all point into PackTest
+     * only used to package for SPECIAL_JUDGE task
+     *
+     * @param papers string array contains all papers' name
+     * @param points string array contains all test points' name
+     * @return a list, contains all packaged test
+     * @see TaskType
+     */
     private List<? extends Callable<?>> packSpj(String[] papers, TestPoint[] points) {
         List<PackTest> tests = new ArrayList<>();
         for (final String paper : papers) {
@@ -122,6 +158,15 @@ public class Task {
         return tests;
     }
 
+    /**
+     * package all papers with all point into PackTest
+     * only used to package for COMMUNICATE task
+     *
+     * @param papers string array contains all papers' name
+     * @param points string array contains all test points' name
+     * @return a list, contains all packaged test
+     * @see TaskType
+     */
     private List<? extends Callable<?>> packComm(String[] papers, TestPoint[] points) {
         List<PackTest> tests = new ArrayList<>();
         for (final String paper : papers) {
@@ -151,13 +196,16 @@ public class Task {
      * @throws TaskException if something wrong
      */
     public void run() throws TaskException {
+        // init
         if (!init()) {
             throw new TaskException("Error in config file.");
         }
+        // load code
         File code = new File(root + File.separator + "code");
         if (!code.exists() || !code.isDirectory()) {
             throw new TaskException("Cannot find code.");
         }
+        // load data
         TestPoint[] points;
         try {
             points = TaskData.getTestPoint(root + File.separator + "data");
@@ -168,6 +216,7 @@ public class Task {
         if (papers == null) {
             throw new TaskException("Error in test papers loading.");
         }
+        // pack paper and test point with different task type
         List<? extends Callable<?>> list = null;
         if (type == TaskType.FULL_COMPARE) {
             list = packTest(papers, points);
@@ -176,6 +225,7 @@ public class Task {
         } else if (type == TaskType.COMMUNICATE) {
             list = packComm(papers, points);
         }
+        // get and write result
         TaskResult res = execute(list);
         try {
             res.writeResult();
@@ -184,27 +234,47 @@ public class Task {
         }
     }
 
+    /**
+     * run all test and collect their result
+     * use ExecutorService to test concurrently
+     * use ExecutorCompletionService to collect completed tests
+     *
+     * @param list list including PackTest
+     * @return a TaskResult, contains all result from tests
+     * @see TaskResult
+     * @see ExecutorService
+     * @see ExecutorCompletionService
+     */
     TaskResult execute(List<? extends Callable<?>> list) {
         ExecutorService s = Executors.newCachedThreadPool();
         ExecutorCompletionService service = new ExecutorCompletionService<>(s);
+        // submit test to ExecutorService
         for (Callable callable : list) {
             service.submit(callable);
         }
         TaskResult result = new TaskResult();
         int n = list.size();
+        // Collect result from ExecutorCompletionService
         for (int i = 0; i < n; i++) {
             try {
                 result.collect((TestUnit) service.take().get());
             } catch (InterruptedException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             } catch (ExecutionException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
         }
+        // close ExecutorService
         s.shutdown();
         return result;
     }
 
+    /**
+     * get all papers from the code folder under root path
+     *
+     * @param code represent the code folder
+     * @return all papers' name
+     */
     String[] getAllPapers(File code) {
         File[] files = code.listFiles();
         if (files == null) return null;
@@ -218,17 +288,37 @@ public class Task {
         return list.toArray(new String[0]);
     }
 
+    /**
+     * inner class to collect result
+     * used to print the result report
+     *
+     * @author holmium
+     * @see Task
+     */
     private class TaskResult {
         private final Map<String, Map<String, TestResult>> res = new HashMap<>();
 
+        /**
+         * collect one test's result
+         *
+         * @param unit test result unit from execute PackTest
+         * @see TestUnit
+         * @see PackTest
+         */
         public void collect(TestUnit unit) {
-            System.out.println(unit.paper + " " + unit.testPoint + " " + unit.result);
+//            System.out.println(unit.paper + " " + unit.testPoint + " " + unit.result);
             if (res.get(unit.getPaper()) == null) {
                 res.put(unit.getPaper(), new HashMap<>());
             }
             res.get(unit.getPaper()).put(unit.getTestPoint(), unit.getResult());
         }
 
+        /**
+         * write the result report to result.csv
+         * write in the 'comma separated values' format
+         *
+         * @throws IOException
+         */
         public void writeResult() throws IOException {
             Path resPath = new File(root + File.separator + "result.csv").toPath();
             if (Files.notExists(resPath)) {
@@ -242,6 +332,7 @@ public class Task {
             String[] cols = res.get(rows[0]).keySet().toArray(new String[0]);
             if (cols.length == 0) return;
             StringBuilder builder = new StringBuilder();
+            // write cols' name
             builder.append("\"name\",");
             for (String s : cols) {
                 builder.append("\"").append(s).append("\",");
@@ -249,6 +340,7 @@ public class Task {
             builder.append(System.lineSeparator());
             out.write(builder.toString());
             for (String row : rows) {
+                // write each paper's result
                 StringBuilder sb = new StringBuilder();
                 sb.append("\"").append(row).append("\",");
                 for (String col : cols) {

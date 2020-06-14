@@ -5,36 +5,45 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * package one test point's data
+ * used to transfer data
+ *
+ * @author AI
+ * @see test.Test
+ */
 public class TestPoint {
 
-    String[]input;
-    String[]output;
+    String[] input;
+    String[] output;
     int name;
 
     public void setName(int name) {
         this.name = name;
     }
+
     public void setInput(File file) throws FileNotFoundException {
-        Scanner input =new Scanner(file);
-        ArrayList<String> strings=new ArrayList<String>();
-        while (input.hasNext()){
+        Scanner input = new Scanner(file);
+        ArrayList<String> strings = new ArrayList<String>();
+        while (input.hasNext()) {
             strings.add(input.nextLine());
         }
-        this.input= new String[strings.size()];
-        this.input=strings.toArray(this.input);
+        this.input = new String[strings.size()];
+        this.input = strings.toArray(this.input);
         input.close();
     }
 
     public void setOutput(File file) throws FileNotFoundException {
-        Scanner input =new Scanner(file);
-        ArrayList<String> strings=new ArrayList<String>();
-        while (input.hasNext()){
+        Scanner input = new Scanner(file);
+        ArrayList<String> strings = new ArrayList<String>();
+        while (input.hasNext()) {
             strings.add(input.nextLine());
         }
-        this.output= new String[strings.size()];
-        this.output=strings.toArray(this.output);
+        this.output = new String[strings.size()];
+        this.output = strings.toArray(this.output);
         input.close();
     }
+
     /**
      * get std input of this test point
      *
@@ -54,11 +63,11 @@ public class TestPoint {
     }
 
     /**
-     * get this test point name (the same as the file name)
+     * get this test point name
      *
      * @return test point name
      */
     public String getName() {
-        return "testPoint"+this.name;
+        return "testPoint" + this.name;
     }
 }

@@ -2,6 +2,13 @@ package task;
 
 import test.TestResult;
 
+/**
+ * package the test result
+ *
+ * @author holmium
+ * @see test.Test
+ * @see PackTest
+ */
 public class TestUnit {
     String paper;
     String testPoint;

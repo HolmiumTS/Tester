@@ -7,7 +7,18 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Scanner;
 
+/**
+ * test in communicate node
+ * the checker can communicate with paper's program dynamically
+ *
+ * @see SpecialJudge
+ * @see Test
+ * @see task.TaskType
+ */
 public class Communicate extends SpecialJudge {
+    /**
+     * use volatile keyword because we will get and set it concurrently
+     */
     volatile TestResult result;
 
     /**
@@ -25,18 +36,29 @@ public class Communicate extends SpecialJudge {
         super(stdInput, stdOutput, compileCommand, runCommand, workingPath, timeLimitMs, runCheckerCommand);
     }
 
+    /**
+     * start to execute the test
+     *
+     * @return
+     * @throws TestException
+     * @see Test
+     */
     @Override
     public TestResult run() throws TestException {
+        // compile failed
         if (!compile()) {
             return TestResult.CE;
         }
+        // create a new thread to run executeAndCheck function
         Thread ec = new Thread(this::executeAndCheck);
         ec.start();
         try {
+            // wait ec to die
             ec.join(timeLimit);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        // ec still not die, interrupt it
         if (ec.isAlive()) {
             ec.interrupt();
 //            try {
@@ -49,13 +71,19 @@ public class Communicate extends SpecialJudge {
         return result;
     }
 
+    /**
+     * execute paper and check it at the same time
+     */
     private void executeAndCheck() {
         Process a = null;
         Process c = null;
         try {
+            // checker
             c = Runtime.getRuntime().exec(checkCmd);
             OutputStream cin = c.getOutputStream();
+            // paper
             a = Runtime.getRuntime().exec(runCmd, null, new File(path));
+            // transfer std input and std output to checker
             System.out.println(path + " " + "input" + " " + Arrays.asList(input));
             for (String i : input) {
                 cin.write(i.trim().getBytes());
@@ -71,6 +99,7 @@ public class Communicate extends SpecialJudge {
             InputStream cout = c.getInputStream();
             OutputStream ain = a.getOutputStream();
             InputStream aout = a.getInputStream();
+            // let checker and paper communicate
             while (a.isAlive() && c.isAlive()) {
                 if (Thread.currentThread().isInterrupted()) {
                     result = TestResult.TLE;
@@ -101,6 +130,7 @@ public class Communicate extends SpecialJudge {
 //            e.printStackTrace();
             result = TestResult.TLE;
         } finally {
+            // clean checker and paper
             if (a != null && a.isAlive()) {
                 a.destroyForcibly();
             }

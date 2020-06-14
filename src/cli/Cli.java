@@ -8,6 +8,14 @@ import task.TaskException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * command line core
+ * use to show correct params
+ * @see JCommander
+ * @see Parameter
+ * @see Task
+ * @author Codevka
+ */
 public class Cli {
     private static final String VERSION = "Java Tester v1.0";
 
@@ -20,17 +28,23 @@ public class Cli {
     @Parameter(names = {"-p", "--path"}, description = "Set root dir of the task", help = true, order = 4)
     private String root;
 
+    /**
+     * execute command
+     * @param jCommander command need to be execute
+     */
     public void run(JCommander jCommander) {
+        // show help
         if (help) {
             jCommander.setProgramName("Java Tester");
             jCommander.usage();
             return;
         }
+        // shw version
         if (version) {
             jCommander.getConsole().println(VERSION);
             return;
         }
-
+        // get default root
         if (root == null)
             root = getClass().getResource("/").toString().substring(5);
 

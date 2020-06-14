@@ -9,8 +9,18 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * test in special judge mode
+ * check the answer with the checker defined by user
+ *
+ * @author holmium
+ * @see Test
+ * @see Communicate
+ */
 public class SpecialJudge extends Test {
-
+    /**
+     * command to start the checker
+     */
     protected final String checkCmd;
 
     /**
@@ -37,6 +47,13 @@ public class SpecialJudge extends Test {
         this.checkCmd = runCheckerCommand;
     }
 
+    /**
+     * check the answer with checker
+     *
+     * @param ans answer of paper
+     * @return true if checker is OK, otherwise false
+     * @see Test
+     */
     @Override
     protected boolean check(String[] ans) {
         Process p = null;
