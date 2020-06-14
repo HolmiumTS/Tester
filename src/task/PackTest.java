@@ -17,6 +17,7 @@ class PackTest implements Callable<TestUnit> {
 
     @Override
     public TestUnit call() throws Exception {
+        System.out.println(paper + " " + testPoint);
         return new TestUnit(paper, testPoint, test.run());
     }
 }

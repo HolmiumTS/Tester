@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -45,23 +46,29 @@ public class SpecialJudge extends Test {
             }
             p = Runtime.getRuntime().exec(checkCmd);
             OutputStream stdin = p.getOutputStream();
+            System.out.println(path + " " + "input" + " " + Arrays.asList(input));
             for (String i : input) {
-                stdin.write(i.getBytes());
+                stdin.write(i.trim().getBytes());
                 stdin.write(System.lineSeparator().getBytes());
                 stdin.flush();
             }
+            System.out.println(path + " " + "output" + " " + Arrays.asList(output));
             for (String o : output) {
-                stdin.write(o.getBytes());
+                stdin.write(o.trim().getBytes());
                 stdin.write(System.lineSeparator().getBytes());
                 stdin.flush();
             }
+            System.out.println(path + " " + "ans" + " " + Arrays.asList(ans));
             for (String a : ans) {
-                stdin.write(a.getBytes());
+                stdin.write(a.trim().getBytes());
                 stdin.write(System.lineSeparator().getBytes());
                 stdin.flush();
             }
             p.waitFor(timeLimit, TimeUnit.MILLISECONDS);
-            return true;
+            if (p.isAlive()) {
+                return false;
+            }
+            return p.exitValue() == 0;
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
             return false;

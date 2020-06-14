@@ -31,6 +31,7 @@ public class Test {
         this.compileCmd = compileCommand;
         this.runCmd = runCommand;
         this.timeLimit = timeLimitMs;
+        this.path = workingPath;
     }
 
     /**
@@ -67,7 +68,7 @@ public class Test {
             Scanner stdout = new Scanner(p.getInputStream());
             Scanner stderr = new Scanner(p.getErrorStream());
             for (String s : input) {
-                stdin.write(s.getBytes());
+                stdin.write(s.trim().getBytes());
                 stdin.write(System.lineSeparator().getBytes());
                 stdin.flush();
             }

@@ -67,6 +67,7 @@ public class Task {
                 if (!scanner.hasNext()) {
                     return false;
                 }
+                scanner.nextLine();
                 runCheckerCommand = scanner.nextLine().trim();
             }
         } catch (Exception e) {
@@ -221,6 +222,7 @@ public class Task {
         private final Map<String, Map<String, TestResult>> res = new HashMap<>();
 
         public void collect(TestUnit unit) {
+            System.out.println(unit.paper + " " + unit.testPoint + " " + unit.result);
             if (res.get(unit.getPaper()) == null) {
                 res.put(unit.getPaper(), new HashMap<>());
             }

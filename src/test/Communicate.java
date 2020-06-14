@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Communicate extends SpecialJudge {
@@ -38,6 +39,12 @@ public class Communicate extends SpecialJudge {
         }
         if (ec.isAlive()) {
             ec.interrupt();
+//            try {
+//                ec.join();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+            result = TestResult.TLE;
         }
         return result;
     }
@@ -49,32 +56,32 @@ public class Communicate extends SpecialJudge {
             c = Runtime.getRuntime().exec(checkCmd);
             OutputStream cin = c.getOutputStream();
             a = Runtime.getRuntime().exec(runCmd, null, new File(path));
+            System.out.println(path + " " + "input" + " " + Arrays.asList(input));
             for (String i : input) {
-                cin.write(i.getBytes());
+                cin.write(i.trim().getBytes());
                 cin.write(System.lineSeparator().getBytes());
                 cin.flush();
             }
+            System.out.println(path + " " + "output" + " " + Arrays.asList(output));
             for (String o : output) {
-                cin.write(o.getBytes());
+                cin.write(o.trim().getBytes());
                 cin.write(System.lineSeparator().getBytes());
                 cin.flush();
             }
-            Scanner cout = new Scanner(c.getInputStream());
+            InputStream cout = c.getInputStream();
             OutputStream ain = a.getOutputStream();
-            Scanner aout = new Scanner(a.getInputStream());
+            InputStream aout = a.getInputStream();
             while (a.isAlive() && c.isAlive()) {
                 if (Thread.currentThread().isInterrupted()) {
                     result = TestResult.TLE;
                     return;
                 }
-                while (aout.hasNextLine()) {
-                    cin.write(aout.nextLine().getBytes());
-                    cin.write(System.lineSeparator().getBytes());
+                while (aout.available() != 0) {
+                    cin.write(aout.read());
                     cin.flush();
                 }
-                while (cout.hasNextLine()) {
-                    ain.write(aout.nextLine().getBytes());
-                    ain.write(System.lineSeparator().getBytes());
+                while (cout.available() != 0) {
+                    ain.write(cout.read());
                     ain.flush();
                 }
             }
@@ -88,10 +95,10 @@ public class Communicate extends SpecialJudge {
                 result = TestResult.AC;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             result = TestResult.RE;
         } catch (InterruptedException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             result = TestResult.TLE;
         } finally {
             if (a != null && a.isAlive()) {
