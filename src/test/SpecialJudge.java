@@ -63,19 +63,19 @@ public class SpecialJudge extends Test {
             }
             p = Runtime.getRuntime().exec(checkCmd);
             OutputStream stdin = p.getOutputStream();
-            System.out.println(path + " " + "input" + " " + Arrays.asList(input));
+//            System.out.println(path + " " + "input" + " " + Arrays.asList(input));
             for (String i : input) {
                 stdin.write(i.trim().getBytes());
                 stdin.write(System.lineSeparator().getBytes());
                 stdin.flush();
             }
-            System.out.println(path + " " + "output" + " " + Arrays.asList(output));
+//            System.out.println(path + " " + "output" + " " + Arrays.asList(output));
             for (String o : output) {
                 stdin.write(o.trim().getBytes());
                 stdin.write(System.lineSeparator().getBytes());
                 stdin.flush();
             }
-            System.out.println(path + " " + "ans" + " " + Arrays.asList(ans));
+//            System.out.println(path + " " + "ans" + " " + Arrays.asList(ans));
             for (String a : ans) {
                 stdin.write(a.trim().getBytes());
                 stdin.write(System.lineSeparator().getBytes());
